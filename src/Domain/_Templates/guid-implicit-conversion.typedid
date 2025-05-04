@@ -1,0 +1,5 @@
+partial struct PLACEHOLDERID
+{
+    public static implicit operator Guid(PLACEHOLDERID productId) => productId.Value;
+    public static implicit operator PLACEHOLDERID(Guid id) => new PLACEHOLDERID(id);
+}
