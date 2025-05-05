@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql;
 using Persistence;
-using Persistence._Utils;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +18,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         Username = databaseCfgSection.GetValue<string>("Username"),
         Password = databaseCfgSection.GetValue<string>("Password")
     };
-    options.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
     options.UseNpgsql(connectionBuilder.ToString());
 });
 

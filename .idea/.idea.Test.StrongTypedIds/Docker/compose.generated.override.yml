@@ -2,7 +2,7 @@
 services:
   api:
     build:
-      context: "/Users/guillaume/code/test-strongtypedids"
+      context: "D:\\Personal\\test-strongtypedids"
       dockerfile: "DockerfileAPI"
       target: "base"
     command: []
@@ -14,7 +14,7 @@ services:
     image: "api:dev"
     ports: []
     volumes:
-    - "/Users/guillaume/code/test-strongtypedids/src/API:/app:rw"
-    - "/Users/guillaume/code/test-strongtypedids:/src:rw"
-    - "/Users/guillaume/.nuget/packages:/home/app/.nuget/packages"
+    - "D:\\Personal\\test-strongtypedids\\src\\API:/app:rw"
+    - "D:\\Personal\\test-strongtypedids:/src:rw"
+    - "C:\\Users\\gdu\\.nuget\\packages:/home/app/.nuget/packages"
     working_dir: "/app"
