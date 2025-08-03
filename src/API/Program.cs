@@ -1,9 +1,6 @@
 using API._Shared;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql;
 using Persistence;
-using Persistence._Utils;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,12 +10,10 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks()
     .AddNpgSql(connectionString: builder.Configuration.GetDbConnectionString().ToString(), 
-        name: "postgresql", 
-        tags: ["db", "sql", "postgresql"]);
+        name: "postgresql", tags: ["db", "sql", "postgresql"]);
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionBuilder = builder.Configuration.GetDbConnectionString();
-    options.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
     options.UseNpgsql(connectionBuilder.ToString());
 });
 
