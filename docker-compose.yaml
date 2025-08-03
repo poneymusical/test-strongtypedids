@@ -1,4 +1,16 @@
 ﻿services:
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.0
+    container_name: aspire-dashboard
+    environment:
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: true
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "18888:18888"
+      - "18889:18889"
+    networks:
+      - test-strongtypedids
+  
   database:
     image: postgres:16
     environment:
@@ -17,26 +29,38 @@
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      - "aspire.resource.name=postgresql"
+      - "aspire.resource.type=postgres"
   
   api:
     image: api
     build: 
       context: .
       dockerfile: DockerfileAPI
+    depends_on:
+      database:
+        condition: service_healthy
+      aspire-dashboard:
+        condition: service_started
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://aspire-dashboard:18889"
+      OTEL_SERVICE_NAME: "api"
       Database__Host: database
       Database__Database: test-stronglytypedids
       Database__Username: ${DATABASE_USERNAME}
       Database__Password: ${DATABASE_PASSWORD}
-    networks:
-      - test-strongtypedids
     ports:
       - "8080:8080"
-    depends_on:
-      database:
-        condition: service_healthy
-  
+    networks:
+      - test-strongtypedids
+    healthcheck:
+      test: [ "CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/8080'" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   postgres-data:

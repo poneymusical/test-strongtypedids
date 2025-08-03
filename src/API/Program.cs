@@ -1,23 +1,24 @@
+using API._Shared;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql;
 using Persistence;
+using Persistence._Utils;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.ConfigureOpenTelemetry();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHealthChecks()
+    .AddNpgSql(connectionString: builder.Configuration.GetDbConnectionString().ToString(), 
+        name: "postgresql", 
+        tags: ["db", "sql", "postgresql"]);
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var databaseCfgSection = builder.Configuration.GetSection("Database");
-    var connectionBuilder = new NpgsqlConnectionStringBuilder
-    {
-        Host = databaseCfgSection.GetValue<string>("Host"),
-        Port = databaseCfgSection.GetValue("Port", 5432),
-        Database = databaseCfgSection.GetValue<string>("Database"),
-        Username = databaseCfgSection.GetValue<string>("Username"),
-        Password = databaseCfgSection.GetValue<string>("Password")
-    };
+    var connectionBuilder = builder.Configuration.GetDbConnectionString();
+    options.ReplaceService<IValueConverterSelector, StronglyTypedIdValueConverterSelector>();
     options.UseNpgsql(connectionBuilder.ToString());
 });
 
@@ -33,11 +34,11 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
-    app.MapGet("", () => Results.Redirect("scalar/v1"));
+    app.MapGet("", () => Results.Redirect("scalar/v1"))
+        .ExcludeFromDescription();
 }
 
-app.UseHttpsRedirection();
-
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 app.Run();
